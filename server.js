@@ -78,9 +78,9 @@ function cleanData(obj) {
 
 const APIs = [
   { name: "tg",           url: "https://rootx-osint.in/?type=tg_num&key=Sahil_x&query={query}",                method:"GET", description:"Telegram user info lookup"              },
-  { name: "leak",         url: "https://raxxosint.onrender.com/leakosint?key=Customer&quiry={query}",          method:"GET", description:"Leak OSINT query lookup"                 },
-  { name: "num",          url: "https://osint.invalidayushh.workers.dev/num?key=Rack&q={number}",              method:"GET", description:"Mobile number intelligence"               },
-  { name: "numsearch",    url: "https://leakapi.dpdns.org/search?q={number}",                                  method:"GET", description:"Database number search"                  },
+  { name: "leak",         url: "https://raxxosint.onrender.com/leakosint?key=Sahilzz-17$&quiry={query}",          method:"GET", description:"Leak OSINT query lookup"                 },
+  { name: "num2",          url: "https://osint.invalidayushh.workers.dev/num?key=Rack&q={number}",              method:"GET", description:"Mobile number intelligence"               },
+  { name: "num",    url: "https://leakapi.dpdns.org/search?q={number}",                                  method:"GET", description:"Database number search"                  },
   { name: "num-india",    url: "https://ft-osint-api.duckdns.org/api/number?key=sahil-new&num={number}",       method:"GET", description:"India phone number lookup"               },
   { name: "num-pak",      url: "https://ft-osint-api.duckdns.org/api/pk?key=sahil-new&number={number}",        method:"GET", description:"Pakistan phone number lookup"            },
   { name: "chain",        url: "https://leakapi.dpdns.org/chain?q={number}",                                   method:"GET", description:"Hi-tech number chain intelligence"       },
