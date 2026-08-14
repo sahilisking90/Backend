@@ -77,8 +77,8 @@ function cleanData(obj) {
 }
 
 const APIs = [
-  { name: "tg",           url: "https://rootx-osint.in/?type=tg_num&key=sahil_X&query={query}",                method:"GET", description:"Telegram user info lookup"              },
-  { name: "leak",         url: "https://raxxosint.onrender.com/leakosint?key=Sahilzz-17$&quiry={query}",          method:"GET", description:"Leak OSINT query lookup"                 },
+  { name: "tg",           url: "https://rootx-osint.in/?type=tg_num&key=Sahil_x&query={query}",                method:"GET", description:"Telegram user info lookup"              },
+  { name: "leak",         url: "https://raxxosint.onrender.com/leakosint?key=Customer&quiry={query}",          method:"GET", description:"Leak OSINT query lookup"                 },
   { name: "num2",          url: "https://osint.invalidayushh.workers.dev/num?key=Rack&q={number}",              method:"GET", description:"Mobile number intelligence"               },
   { name: "num",    url: "https://leakapi.dpdns.org/search?q={number}",                                  method:"GET", description:"Database number search"                  },
   { name: "num-india",    url: "https://ft-osint-api.duckdns.org/api/number?key=sahil-new&num={number}",       method:"GET", description:"India phone number lookup"               },
@@ -90,7 +90,7 @@ const APIs = [
   { name: "email",        url: "https://osint.invalidayushh.workers.dev/email?key=Rack&q={email}",             method:"GET", description:"Email breach record lookup"              },
   { name: "veh-info",     url: "https://leakapi.dpdns.org/vehicle-info?registration_number={vehicle}",         method:"GET", description:"Vehicle registration details"            },
   { name: "veh",          url: "https://leakapi.dpdns.org/api/vehicle?vehicle={vehicle}",                      method:"GET", description:"Detailed vehicle intelligence"           },
-  { name: "rc",           url: "https://leakapi.dpdns.org/rc?registration_number={vehicle}",                   method:"GET", description:"RC registration lookup"                  },
+  { name: "rc",           url: "https://vvvin-ng.vercel.app/lookup?rc={vehicle}",                   method:"GET", description:"RC registration lookup"                  },
   { name: "insta",        url: "https://osint.invalidayushh.workers.dev/insta?key=Rack&q={username}",          method:"GET", description:"Instagram account intelligence"          },
   { name: "git",          url: "https://ft-osint-api.duckdns.org/api/git?key=sahil-new&username={username}",   method:"GET", description:"GitHub profile intelligence"             },
   { name: "bgmi",         url: "https://ft-osint-api.duckdns.org/api/bgmi?key=sahil-new&uid={uid}",            method:"GET", description:"BGMI player ID lookup"                   },
@@ -252,169 +252,9 @@ app.get('/sql/search', (req, res) => {
   });
 });
 
-// SPECIAL HANDLER FOR TELEGRAM API (/api/tg)
-app.all('/api/tg', async (req, res) => {
-  try {
-    const startTime = Date.now();
-    const endpointName = 'tg';
-    const apiConfig = registeredAPIs.find(a => a.name === 'tg');
-    
-    if (!apiConfig) {
-      return res.status(404).json({
-        success: false, 
-        error: "Endpoint not found",
-        message: "Telegram endpoint configuration missing"
-      });
-    }
-
-    // Extract query parameter (support both 'query' and 'q')
-    let queryValue = req.query.query || req.query.q || req.body.query || req.body.q;
-    
-    if (!queryValue) {
-      return res.status(400).json({
-        success: false,
-        error: "Missing required parameter",
-        required_parameters: ['query'],
-        message: "Please supply a valid query parameter (e.g., ?query=@username)"
-      });
-    }
-
-    // Clean the query - preserve @ if present
-    queryValue = queryValue.trim();
-    
-    // Build the URL with proper encoding
-    const baseUrl = 'https://rootx-osint.in/?type=tg_num&key=sahil_X';
-    // Don't double-encode the @ symbol - encode the entire query value properly
-    const encodedQuery = encodeURIComponent(queryValue);
-    const finalUpstreamUrl = `${baseUrl}&query=${encodedQuery}`;
-    
-    console.log(`[TG] Original query: ${queryValue}`);
-    console.log(`[TG] Encoded query: ${encodedQuery}`);
-    console.log(`[TG] Full URL: ${finalUpstreamUrl}`);
-
-    const axiosConfig = {
-      method: 'GET',
-      url: finalUpstreamUrl,
-      timeout: 30000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'application/json, text/plain, */*'
-      },
-      validateStatus: status => status < 600
-    };
-
-    const response = await axios(axiosConfig);
-    const execTime = Date.now() - startTime;
-    
-    console.log(`[TG] Response status: ${response.status}`);
-    
-    // Check if response is HTML
-    if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
-      console.log(`[TG] Received HTML response, attempting to extract JSON`);
-      
-      // Try to parse as JSON anyway - sometimes APIs return JSON with HTML wrapper
-      try {
-        const jsonMatch = response.data.match(/\{.*\}/s);
-        if (jsonMatch) {
-          const parsedData = JSON.parse(jsonMatch[0]);
-          console.log(`[TG] Extracted JSON from HTML wrapper successfully`);
-          
-          if (parsedData && typeof parsedData === 'object') {
-            let cleaned = cleanData(parsedData);
-            
-            if (cleaned && typeof cleaned === 'object' && !Array.isArray(cleaned)) {
-              cleaned.owner = OWNER;
-              cleaned.channel = CHANNEL;
-              cleaned.timestamp = new Date().toISOString();
-            }
-            
-            logQuery(endpointName, 'query', queryValue, response.status, cleaned, null, req.ip, execTime);
-            return res.status(response.status).json(cleaned);
-          }
-        }
-      } catch (parseError) {
-        console.log(`[TG] Could not extract JSON from HTML:`, parseError.message);
-      }
-      
-      logQuery(endpointName, 'query', queryValue, 500, {}, "HTML error page returned", req.ip, execTime);
-      return res.status(500).json({ 
-        success: false, 
-        error: "API returned HTML error page", 
-        owner: OWNER, 
-        channel: CHANNEL 
-      });
-    }
-
-    // Check if response is empty
-    if (!response.data) {
-      logQuery(endpointName, 'query', queryValue, 500, {}, "No data returned", req.ip, execTime);
-      return res.status(500).json({ 
-        success: false, 
-        error: "API returned no data", 
-        status: response.status, 
-        owner: OWNER, 
-        channel: CHANNEL 
-      });
-    }
-
-    // Clean the response data
-    let cleaned = cleanData(response.data);
-
-    // If cleaned is empty, return 404
-    if (!cleaned || (typeof cleaned === 'object' && Object.keys(cleaned).length === 0)) {
-      logQuery(endpointName, 'query', queryValue, 404, cleaned, "Empty response", req.ip, execTime);
-      return res.status(404).json({ 
-        success: false, 
-        error: "No data found", 
-        owner: OWNER, 
-        channel: CHANNEL 
-      });
-    }
-
-    // Add owner, channel, timestamp
-    if (cleaned && typeof cleaned === 'object' && !Array.isArray(cleaned)) {
-      cleaned.owner = OWNER;
-      cleaned.channel = CHANNEL;
-      cleaned.timestamp = new Date().toISOString();
-    } else {
-      cleaned = { data: cleaned, owner: OWNER, channel: CHANNEL, timestamp: new Date().toISOString() };
-    }
-
-    logQuery(endpointName, 'query', queryValue, response.status, cleaned, null, req.ip, execTime);
-    return res.status(response.status).json(cleaned);
-
-  } catch (error) {
-    const startTime = Date.now();
-    const execTime = Date.now() - startTime;
-    console.error(`[TG] Error:`, error.message);
-    
-    let errorMessage = error.message || "An unexpected error occurred";
-    let errorDetails = {};
-
-    if (error.response) {
-      errorDetails.status = error.response.status;
-      errorMessage = `API returned status ${error.response.status}`;
-      console.error(`[TG] Response error:`, error.response.data);
-    } else if (error.request) {
-      errorMessage = "No response from API server (timeout or network error)";
-    }
-
-    logQuery('tg', 'query', req.query.query || req.query.q, 500, {}, errorMessage, req.ip, execTime);
-
-    return res.status(500).json({
-      success: false, 
-      error: "Gateway execution error",
-      message: errorMessage, 
-      details: errorDetails,
-      owner: OWNER, 
-      channel: CHANNEL
-    });
-  }
-});
-
-// PERMANENT ROUTES (excluding /api/tg which has special handling)
+// MAIN API GATEWAY
 const PERMANENT_ROUTES = [
-  '/api/leak', '/api/num', '/api/numsearch', '/api/num-india', '/api/num-pak',
+  '/api/tg', '/api/leak', '/api/num', '/api/numsearch', '/api/num-india', '/api/num-pak',
   '/api/chain', '/api/bom', '/api/adhar', '/api/family', '/api/email', '/api/veh-info',
   '/api/veh', '/api/rc', '/api/insta', '/api/git', '/api/bgmi', '/api/ff', '/api/ifsc',
   '/api/pan', '/api/ip', '/api/pin',
@@ -429,7 +269,6 @@ PERMANENT_ROUTES.forEach(route => {
   });
 });
 
-// MAIN API GATEWAY (handles all other endpoints except /api/tg)
 app.all('/api/:endpoint', async (req, res) => {
   try {
     const startTime = Date.now();
@@ -531,7 +370,6 @@ app.all('/api/:endpoint', async (req, res) => {
     return res.status(response.status).json(cleaned);
 
   } catch (error) {
-    const startTime = Date.now();
     const execTime = Date.now() - startTime;
     console.error(`[${new Date().toISOString()}] Error:`, error.message);
     
